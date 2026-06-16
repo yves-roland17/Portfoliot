@@ -19,7 +19,9 @@ export default defineConfig(() => {
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
       // La virgule a été ajoutée juste au-dessus pour lier la propriété suivante :
       allowedHosts: [
-        'portfolio-4zsu.onrender.com'
+        'portfolio-4zsu.onrender.com',
+        'portfoliot-4zsu.onrender.com',
+        '.onrender.com'
       ]
     },
   };
