@@ -52,6 +52,19 @@ export const projectsData: Project[] = [
     githubUrl: '#',
     featured: false,
     role: 'Creative Developer'
+  },
+  {
+    id: '5',
+    title: 'Aegis - Passerelle API & Courtier de Données',
+    description: 'Une passerelle API distribuée ultra-rapide conçue en Rust/Go capable de router des milliers de requêtes par seconde avec mise en cache Redis intégrée.',
+    longDescription: 'Aegis est un middleware de niveau production offrant de la régulation de débit dynamique (rate limiting), de la télémétrie en temps réel avec Prometheus, de la gestion intelligente de files de messages RabbitMQ, ainsi qu\'un système de proxy inverse pour sécuriser les microservices modernes.',
+    category: 'Backend',
+    tags: ['Go / Rust', 'Redis', 'Docker', 'gRPC', 'Prometheus'],
+    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80',
+    demoUrl: '#',
+    githubUrl: '#',
+    featured: true,
+    role: 'Lead Backend Architect'
   }
 ];
 

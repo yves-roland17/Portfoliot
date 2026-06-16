@@ -94,28 +94,47 @@ export default function Projects({ projects }: ProjectsProps) {
         </motion.div>
 
         {/* Projects Grid with layout animation wrapper */}
-        <motion.div 
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 gap-8"
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project) => (
-              <motion.div
-                key={project.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4 }}
-              >
-                <ProjectCard
-                  project={project}
-                  onSelect={setSelectedProject}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        {filteredProjects.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="flex flex-col items-center justify-center py-16 px-6 glass rounded-3xl border border-slate-200/40 dark:border-white/10 text-center max-w-xl mx-auto backdrop-blur-xl"
+            id="empty-projects-fallback"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/30 mb-5 animate-pulse">
+              <Layers className="w-6 h-6" />
+            </div>
+            <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white mb-2">
+              Aucun projet sous "{filter}"
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-450 leading-relaxed font-light mb-4">
+              Il n'y a pas encore de projet de démonstration enregistré spécifiquement sous la catégorie "{filter}". Vous pouvez en ajouter un ou modifier vos projets depuis la console d'administration.
+            </p>
+          </motion.div>
+        ) : (
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
+            id="projects-grid"
+          >
+            <AnimatePresence mode="wait">
+              {filteredProjects.map((project) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ProjectCard
+                    project={project}
+                    onSelect={setSelectedProject}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
       </div>
 
       {/* Modal overlays for project detailing */}
