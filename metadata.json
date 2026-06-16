@@ -1,0 +1,6 @@
+{
+  "name": "Creative Dev Portfolio",
+  "description": "Un portfolio moderne, ultra-animé, fluide et responsive pour développeurs avec intégration EmailJS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

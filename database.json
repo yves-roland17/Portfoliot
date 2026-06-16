@@ -1,0 +1,159 @@
+{
+  "profile": [
+    {
+      "id": 1,
+      "name": "Tia Doueu",
+      "title": "Architecte Logiciel & Développeur Web",
+      "photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400",
+      "email": "doueu.tia@uvci.edu.ci",
+      "location": "Abidjan, Côte d'Ivoire"
+    }
+  ],
+  "projects": [
+    {
+      "id": "1",
+      "title": "Orbit - Moteur d'Interface Collaboratif",
+      "description": "Une plateforme SaaS de prototypage et de collaboration d'interface en temps réel basée sur WebSockets.",
+      "longDescription": "Orbit redéfinit les espaces de travail de conception de code. Il permet à plusieurs développeurs et designers de manipuler des composants de l'interface utilisateur en temps réel, de synchroniser l'état via des WebSockets haute performance et de générer du code React/Tailwind nettoyé instantanément.",
+      "category": "Fullstack",
+      "tags": "React, Node.js, WebSockets, Tailwind CSS, Framer Motion",
+      "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+      "demoUrl": "#",
+      "githubUrl": "#",
+      "featured": 1,
+      "role": "Lead Fullstack Developer"
+    },
+    {
+      "id": "2",
+      "title": "Aura - Streaming Audio Décentralisé",
+      "description": "Une application Web3 de streaming musical qui rémunère équitablement les créateurs via des protocoles intelligents.",
+      "longDescription": "Aura élimine les intermédiaires de diffusion. Grâce aux contrats intelligents sur le réseau Ethereum, chaque écoute déclenche un micro-paiement direct à l'artiste. Comprend un lecteur audio hautement personnalisé et réactif.",
+      "category": "Web3",
+      "tags": "Solidity, Ethers.js, Next.js, Tailwind, Motion",
+      "image": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=800&q=80",
+      "demoUrl": "#",
+      "githubUrl": "#",
+      "featured": 1,
+      "role": "Blockchain & Frontend Engineer"
+    },
+    {
+      "id": "3",
+      "title": "Helix - Client GUI Redis ultra-rapide",
+      "description": "Un outil de bureau moderne pour visualiser, éditer et surveiller efficacement les bases de données Redis.",
+      "longDescription": "Helix est un compagnon de développement moderne conçu pour les ingénieurs système. Il propose une recherche instantanée, des visualisations graphiques de la mémoire, un tableau de bord de performance en direct et un éditeur de clés intuitif, le tout enveloppé dans une esthétique cyberpunk.",
+      "category": "Frontend",
+      "tags": "TypeScript, React, Tauri, Recharts, Tailwind",
+      "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+      "demoUrl": "#",
+      "githubUrl": "#",
+      "featured": 0,
+      "role": "UI/UX Creator"
+    },
+    {
+      "id": "4",
+      "title": "Synthetix - Synthétiseur Audio Interactif",
+      "description": "Une console audio web interactive permettant de composer des mélodies en manipulant des ondes géométriques.",
+      "longDescription": "Synthetix exploite l'API Web Audio pour créer un synthétiseur modulaire complet utilisable en ligne. L'utilisateur manipule un canevas interactif pour altérer les fréquences, les filtres et les harmoniques avec un retour visuel en temps réel.",
+      "category": "Frontend",
+      "tags": "HTML5 Web Audio, React, Canvas, TypeScript, Motion",
+      "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80",
+      "demoUrl": "#",
+      "githubUrl": "#",
+      "featured": 0,
+      "role": "Creative Developer"
+    }
+  ],
+  "skills": [
+    {
+      "name": "React / Next.js",
+      "level": 95,
+      "category": "Frontend",
+      "icon": "ReactIcon"
+    },
+    {
+      "name": "TypeScript",
+      "level": 90,
+      "category": "Frontend",
+      "icon": "FileCodeIcon"
+    },
+    {
+      "name": "Tailwind CSS",
+      "level": 98,
+      "category": "Frontend",
+      "icon": "PaletteIcon"
+    },
+    {
+      "name": "Framer Motion",
+      "level": 92,
+      "category": "Frontend",
+      "icon": "SparklesIcon"
+    },
+    {
+      "name": "Node.js / Express",
+      "level": 88,
+      "category": "Backend",
+      "icon": "ServerIcon"
+    },
+    {
+      "name": "GraphQL / REST APIs",
+      "level": 85,
+      "category": "Backend",
+      "icon": "CpuIcon"
+    },
+    {
+      "name": "PostgreSQL & Prisma",
+      "level": 80,
+      "category": "Backend",
+      "icon": "DatabaseIcon"
+    },
+    {
+      "name": "Redis",
+      "level": 75,
+      "category": "Backend",
+      "icon": "LayersIcon"
+    },
+    {
+      "name": "Docker",
+      "level": 82,
+      "category": "DevOps & Tools",
+      "icon": "BoxIcon"
+    },
+    {
+      "name": "CI/CD & GitHub Actions",
+      "level": 78,
+      "category": "DevOps & Tools",
+      "icon": "WorkflowIcon"
+    },
+    {
+      "name": "Vercel / AWS",
+      "level": 80,
+      "category": "DevOps & Tools",
+      "icon": "CloudIcon"
+    },
+    {
+      "name": "Git & Terminal",
+      "level": 95,
+      "category": "DevOps & Tools",
+      "icon": "TerminalIcon"
+    },
+    {
+      "name": "HTML5 / CSS3",
+      "level": 95,
+      "category": "Languages",
+      "icon": "CodeIcon"
+    },
+    {
+      "name": "JavaScript ES6+",
+      "level": 95,
+      "category": "Languages",
+      "icon": "BracesIcon"
+    },
+    {
+      "name": "Python",
+      "level": 70,
+      "category": "Languages",
+      "icon": "BinaryIcon"
+    }
+  ],
+  "contacts": []
+}
