@@ -74,20 +74,12 @@ export default function Projects({ projects }: ProjectsProps) {
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-4 sm:px-5 py-2.5 rounded-full font-medium text-sm transition-all relative cursor-pointer ${
+              className={`px-4 sm:px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300 relative cursor-pointer overflow-hidden ${
                 filter === cat
-                  ? 'text-white font-semibold'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-50/50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 backdrop-blur-md'
+                  ? 'text-white font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-indigo-600/25 border border-transparent'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-100 dark:hover:text-white bg-slate-50/50 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 backdrop-blur-md'
               }`}
             >
-              {filter === cat && (
-                <motion.div
-                  layoutId="activeFilterBg"
-                  className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full"
-                  style={{ zIndex: -1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                />
-              )}
               {cat}
             </button>
           ))}
