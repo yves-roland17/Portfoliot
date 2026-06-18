@@ -753,7 +753,7 @@ async function startServer() {
     const distPath = path.join(process.cwd(), 'dist');
     const expressInstance = app.getHttpAdapter().getInstance();
     expressInstance.use(express.static(distPath));
-    expressInstance.get('*', (req, res, next) => {
+    expressInstance.get('*all', (req, res, next) => {
       // Allow NestJS native routers handling of /api pathings
       if (req.path.startsWith('/api')) {
         return next();
