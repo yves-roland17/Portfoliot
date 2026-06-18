@@ -107,11 +107,16 @@ export class DatabaseService {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255),
         title VARCHAR(255),
-        photo VARCHAR(1000),
+        photo LONGTEXT,
         email VARCHAR(255),
         location VARCHAR(255)
       ) ENGINE=InnoDB;
     `);
+    try {
+      await this.pool.query('ALTER TABLE profile MODIFY COLUMN photo LONGTEXT;');
+    } catch (e) {
+      console.warn('[NestJS] Could not alter profile photo column to LONGTEXT:', e);
+    }
 
     // Projects table
     await this.pool.query(`
@@ -122,13 +127,18 @@ export class DatabaseService {
         longDescription TEXT,
         category VARCHAR(100),
         tags TEXT,
-        image VARCHAR(1000),
+        image LONGTEXT,
         demoUrl VARCHAR(1000),
         githubUrl VARCHAR(1000),
         featured INT DEFAULT 0,
         role VARCHAR(255)
       ) ENGINE=InnoDB;
     `);
+    try {
+      await this.pool.query('ALTER TABLE projects MODIFY COLUMN image LONGTEXT;');
+    } catch (e) {
+      console.warn('[NestJS] Could not alter projects image column to LONGTEXT:', e);
+    }
 
     // Skills table
     await this.pool.query(`
@@ -731,8 +741,9 @@ async function startServer() {
   // Create NestJS app instance with Express underlying engine
   const app = await NestFactory.create(AppModule);
   
-  // Enable JSON request body parsing inside the Express engine
-  app.use(express.json());
+  // Enable JSON request body parsing inside the Express engine with larger limits for base64 images
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // Set up front-end asset piping
   if (process.env.NODE_ENV !== 'production') {
