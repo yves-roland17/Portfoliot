@@ -256,12 +256,14 @@ export default function App() {
             profile={profile} 
             onOpenProfile={() => setIsProfileModalOpen(true)}
             onOpenAdmin={() => setIsAdminOpen(true)}
+            isAdmin={isAdminAuthenticated}
           />
 
           {/* Hero Intro */}
           <Hero 
             profile={profile} 
             onOpenProfile={() => setIsProfileModalOpen(true)} 
+            isAdmin={isAdminAuthenticated}
           />
 
           {/* Portfolio Projects Section */}

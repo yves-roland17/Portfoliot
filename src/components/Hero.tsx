@@ -6,9 +6,10 @@ import { UserProfile } from './ProfileModal';
 interface HeroProps {
   profile: UserProfile;
   onOpenProfile: () => void;
+  isAdmin?: boolean;
 }
 
-export default function Hero({ profile, onOpenProfile }: HeroProps) {
+export default function Hero({ profile, onOpenProfile, isAdmin = false }: HeroProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   
   // Parallax scrolling effects for ambient background shapes
@@ -106,19 +107,25 @@ export default function Hero({ profile, onOpenProfile }: HeroProps) {
           style={{ y: yText }}
           className="md:col-span-7 flex flex-col items-start text-left"
         >
-          {/* Clickable Profile Card block */}
+          {/* Profile Card block */}
           <motion.div
             variants={itemVariants}
-            onClick={onOpenProfile}
-            className="flex items-center gap-4 p-3 pr-5 mb-6 rounded-2xl glass hover:bg-slate-50/50 dark:hover:bg-white/5 border border-slate-205/20 dark:border-white/10 shadow-lg cursor-pointer transition-all duration-300 group/hero-avatar"
-            title="Cliquez pour personnaliser votre profil !"
+            onClick={isAdmin ? onOpenProfile : undefined}
+            className={`flex items-center gap-4 p-3 pr-5 mb-6 rounded-2xl glass border border-slate-205/20 dark:border-white/10 shadow-lg transition-all duration-300 group/hero-avatar ${
+              isAdmin 
+                ? 'hover:bg-slate-50/50 dark:hover:bg-white/5 cursor-pointer' 
+                : 'select-none'
+            }`}
+            title={isAdmin ? "Cliquez pour personnaliser votre profil !" : undefined}
           >
             <div className="relative">
               <div className="w-14 h-14 rounded-xl overflow-hidden border border-slate-300/30 dark:border-white/5 bg-slate-100 dark:bg-white/5 shrink-0">
                 <img
                   src={profile.photo}
                   alt={profile.name}
-                  className="w-full h-full object-cover group-hover/hero-avatar:scale-110 transition-transform duration-550"
+                  className={`w-full h-full object-cover transition-transform duration-550 ${
+                    isAdmin ? 'group-hover/hero-avatar:scale-110' : ''
+                  }`}
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -128,10 +135,14 @@ export default function Hero({ profile, onOpenProfile }: HeroProps) {
             </div>
             <div className="flex flex-col text-left">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-display font-extrabold text-slate-800 dark:text-white group-hover/hero-avatar:text-indigo-500 transition-colors">
+                <span className={`text-sm font-display font-extrabold text-slate-800 dark:text-white transition-colors ${
+                  isAdmin ? 'group-hover/hero-avatar:text-indigo-500' : ''
+                }`}>
                   {profile.name}
                 </span>
-                <UserPen className="w-3.5 h-3.5 text-slate-400 group-hover/hero-avatar:text-indigo-400 opacity-x-0 group-hover/hero-avatar:opacity-100 transition-all pointer-events-none" />
+                {isAdmin && (
+                  <UserPen className="w-3.5 h-3.5 text-slate-400 group-hover/hero-avatar:text-indigo-400 opacity-0 group-hover/hero-avatar:opacity-100 transition-all pointer-events-none" />
+                )}
               </div>
               <span className="text-[10px] text-indigo-650 dark:text-indigo-400 font-mono tracking-widest font-medium uppercase mt-0.5">
                 {profile.title}

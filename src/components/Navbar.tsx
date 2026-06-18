@@ -9,9 +9,10 @@ interface NavbarProps {
   profile: UserProfile;
   onOpenProfile: () => void;
   onOpenAdmin: () => void;
+  isAdmin?: boolean;
 }
 
-export default function Navbar({ darkMode, setDarkMode, profile, onOpenProfile, onOpenAdmin }: NavbarProps) {
+export default function Navbar({ darkMode, setDarkMode, profile, onOpenProfile, onOpenAdmin, isAdmin = false }: NavbarProps) {
   const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -136,21 +137,23 @@ export default function Navbar({ darkMode, setDarkMode, profile, onOpenProfile, 
           </motion.button>
 
           {/* Clickable user profile avatar next to toggle */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onOpenProfile}
-            className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200/50 dark:border-white/10 group cursor-pointer shadow-sm ml-0.5 shrink-0 bg-slate-100 dark:bg-white/5"
-            aria-label="Modifier le profil"
-            title="Modifier mon profil"
-          >
-            <img
-              src={profile.photo}
-              alt={profile.name}
-              className="w-full h-full object-cover group-hover:opacity-85 transition-opacity"
-              referrerPolicy="no-referrer"
-            />
-          </motion.button>
+          {isAdmin && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onOpenProfile}
+              className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200/50 dark:border-white/10 group cursor-pointer shadow-sm ml-0.5 shrink-0 bg-slate-100 dark:bg-white/5"
+              aria-label="Modifier le profil"
+              title="Modifier mon profil"
+            >
+              <img
+                src={profile.photo}
+                alt={profile.name}
+                className="w-full h-full object-cover group-hover:opacity-85 transition-opacity"
+                referrerPolicy="no-referrer"
+              />
+            </motion.button>
+          )}
 
           {/* New Admin CRUD Console trigger */}
           <motion.button
@@ -179,19 +182,21 @@ export default function Navbar({ darkMode, setDarkMode, profile, onOpenProfile, 
           </button>
           
           {/* Mobile Profile Trigger */}
-          <button
-            onClick={onOpenProfile}
-            className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200/55 dark:border-white/10 cursor-pointer bg-slate-100 dark:bg-white/5 shrink-0"
-            aria-label="Modifier le profil"
-            title="Modifier mon profil"
-          >
-            <img
-              src={profile.photo}
-              alt={profile.name}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          </button>
+          {isAdmin && (
+            <button
+              onClick={onOpenProfile}
+              className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200/55 dark:border-white/10 cursor-pointer bg-slate-100 dark:bg-white/5 shrink-0"
+              aria-label="Modifier le profil"
+              title="Modifier mon profil"
+            >
+              <img
+                src={profile.photo}
+                alt={profile.name}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </button>
+          )}
 
           {/* Mobile Admin Trigger button */}
           <button
