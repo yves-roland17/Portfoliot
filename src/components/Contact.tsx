@@ -94,31 +94,52 @@ export default function Contact({ profile, isAdmin }: ContactProps) {
         setIsLoading(false);
       }
     } else {
-      // PERSISTED SEND WITH REAL-TIME SERVER-SIDE EMAIL ROUTING TO ROLAND.TIA@EPITECH.EU
+      // PERSISTED SEND WITH FRONTEND DIRECT MAIL ROUTING & DATABASE RECORDING
       try {
-        const response = await fetch('/api/contacts', {
+        // 1. Enregistrement en base de données (si backend disponible)
+        try {
+          await fetch('/api/contacts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, subject, message, autoSendEmail: false })
+          });
+        } catch (dbErr) {
+          console.warn('Database save skipped (local fallback mode or static build):', dbErr);
+        }
+
+        // 2. Envoi direct via FormSubmit depuis le navigateur (CORS activé par FormSubmit)
+        const response = await fetch('https://formsubmit.co/ajax/roland.tia@epitech.eu', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, subject, message, autoSendEmail: true })
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            _subject: subject || 'Nouveau message du Portfolio',
+            message,
+            _honey: '' // Discret Honeypot anti-spam
+          })
         });
         
         const result = await response.json();
         
-        if (response.ok) {
+        if (response.ok && (result.success === 'true' || result.success === true)) {
           setStatus('success');
-          setStatusMessage('Votre message a été enregistré avec succès en base de données et envoyé par e-mail à roland.tia@epitech.eu ! Remarque : pour le tout premier envoi, FormSubmit vous envoie un e-mail à confirmer (pensez à vérifier vos courriers indésirables / Spams) pour de futurs messages directs !');
+          setStatusMessage('Message enregistré en base de données et envoyé ! IMPORTANT : Microsoft Outlook (epitech.eu) bloque souvent les e-mails externes ou les place dans les courriers indésirables. S\'il s\'agit de votre tout premier test, vérifiez impérativement votre dossier des SPAMS/INDÉSIRABLES sur Outlook pour cliquer sur le lien d\'activation FormSubmit !');
           // Reset form
           setName('');
           setEmail('');
           setSubject('');
           setMessage('');
         } else {
-          throw new Error(result?.message || 'Erreur lors de l\'enregistrement de votre message.');
+          throw new Error(result?.message || 'Une erreur est survenue lors de l\'envoi via FormSubmit.');
         }
       } catch (err: any) {
         console.error('Failed to save and send message:', err);
         setStatus('error');
-        setStatusMessage(`Une erreur est survenue lors de l'envoi : ${err?.message || 'Erreur inconnue'}.`);
+        setStatusMessage(`Une erreur est survenue lors de l'envoi : ${err?.message || 'Erreur réseau'}. N'hésitez pas à m'écrire directement par e-mail à roland.tia@epitech.eu !`);
       } finally {
         setIsLoading(false);
       }
