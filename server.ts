@@ -570,22 +570,56 @@ export class DatabaseService {
   }
 
   async saveContact(data: any) {
+    let saved = false;
     if (this.isMySQL && this.pool) {
       try {
         await this.pool.query(
           'INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)',
           [data.name, data.email, data.subject || '', data.message]
         );
-        return { success: true };
+        saved = true;
       } catch (err) {
         console.error('[NestJS] MySQL query error in saveContact:', err);
       }
     }
-    // Fallback
-    await run(
-      'INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)',
-      [data.name, data.email, data.subject || '', data.message]
-    );
+    
+    if (!saved) {
+      // Fallback
+      await run(
+        'INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)',
+        [data.name, data.email, data.subject || '', data.message]
+      );
+    }
+
+    // Auto routing of email to roland.tia@epitech.eu
+    if (data.autoSendEmail !== false) {
+      try {
+        console.log('[NestJS] Forwarding contact message to roland.tia@epitech.eu via FormSubmit...');
+        const emailTo = 'roland.tia@epitech.eu';
+        
+        // We make a server-side POST request to FormSubmit to safely & securely route the message
+        const response = await fetch(`https://formsubmit.co/ajax/${emailTo}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            _subject: data.subject || 'Nouveau message de votre Portfolio',
+            message: data.message,
+            _honey: '' // Anti-spam honeypot
+          })
+        });
+
+        const resBody = await response.json();
+        console.log('[NestJS] FormSubmit email sending result:', resBody);
+      } catch (err) {
+        console.error('[NestJS] Error forwarding email via FormSubmit:', err);
+      }
+    }
+
     return { success: true };
   }
 

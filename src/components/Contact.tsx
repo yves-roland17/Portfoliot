@@ -40,25 +40,6 @@ export default function Contact({ profile, isAdmin }: ContactProps) {
     setIsLoading(true);
     setStatus('idle');
 
-    // Save submission to relational database
-    try {
-      await fetch('/api/contacts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, subject, message })
-      });
-    } catch (err) {
-      console.error('Failed to save message to SQLite DB:', err);
-    }
-
-    // Prepare template params
-    const templateParams = {
-      from_name: name,
-      from_email: email,
-      subject: subject || 'Nouveau message du Portfolio',
-      message: message,
-    };
-
     // Determine if EmailJS credentials are provided
     const configuredServiceId = serviceId.trim();
     const configuredTemplateId = templateId.trim();
@@ -67,7 +48,25 @@ export default function Contact({ profile, isAdmin }: ContactProps) {
     const isEmailJSConfigured = configuredServiceId && configuredTemplateId && configuredPublicKey;
 
     if (isEmailJSConfigured) {
+      // Save submission to database first
+      try {
+        await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, subject, message, autoSendEmail: false })
+        });
+      } catch (err) {
+        console.error('Failed to save message to DB:', err);
+      }
+
       // REAL EMAILJS SEND
+      const templateParams = {
+        from_name: name,
+        from_email: email,
+        subject: subject || 'Nouveau message du Portfolio',
+        message: message,
+      };
+
       try {
         const result = await emailjs.send(
           configuredServiceId,
@@ -95,18 +94,34 @@ export default function Contact({ profile, isAdmin }: ContactProps) {
         setIsLoading(false);
       }
     } else {
-      // PERSISTED SEND WITH AWESOME TUTORIAL EXPLANATIONS
-      setTimeout(() => {
-        setIsLoading(false);
-        setStatus('success');
-        setStatusMessage('Votre message a été enregistré avec succès dans notre base de données relationnelle !');
+      // PERSISTED SEND WITH REAL-TIME SERVER-SIDE EMAIL ROUTING TO ROLAND.TIA@EPITECH.EU
+      try {
+        const response = await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, subject, message, autoSendEmail: true })
+        });
         
-        // Reset form
-        setName('');
-        setEmail('');
-        setSubject('');
-        setMessage('');
-      }, 1200);
+        const result = await response.json();
+        
+        if (response.ok) {
+          setStatus('success');
+          setStatusMessage('Votre message a été enregistré avec succès en base de données et envoyé par e-mail à roland.tia@epitech.eu !');
+          // Reset form
+          setName('');
+          setEmail('');
+          setSubject('');
+          setMessage('');
+        } else {
+          throw new Error(result?.message || 'Erreur lors de l\'enregistrement de votre message.');
+        }
+      } catch (err: any) {
+        console.error('Failed to save and send message:', err);
+        setStatus('error');
+        setStatusMessage(`Une erreur est survenue lors de l'envoi : ${err?.message || 'Erreur inconnue'}.`);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
