@@ -6,9 +6,10 @@ import { Project } from '../types';
 interface ProjectCardProps {
   project: Project;
   onSelect: (p: Project) => void;
+  isAdmin?: boolean;
 }
 
-export default function ProjectCard({ project, onSelect }: ProjectCardProps) {
+export default function ProjectCard({ project, onSelect, isAdmin = false }: ProjectCardProps) {
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [hovered, setHovered] = useState(false);
@@ -125,7 +126,7 @@ export default function ProjectCard({ project, onSelect }: ProjectCardProps) {
               </button>
 
               <div className="flex items-center gap-2">
-                {project.githubUrl && (
+                {isAdmin && project.githubUrl && (
                   <a
                     href={project.githubUrl}
                     onClick={(e) => e.stopPropagation()}

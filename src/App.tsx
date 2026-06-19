@@ -267,7 +267,7 @@ export default function App() {
           />
 
           {/* Portfolio Projects Section */}
-          <Projects projects={projects} />
+          <Projects projects={projects} isAdmin={isAdminAuthenticated} />
 
           {/* Skills Tab Layout */}
           <Skills skills={skills} />
@@ -279,7 +279,7 @@ export default function App() {
           <Contact profile={profile} isAdmin={isAdminAuthenticated} />
 
           {/* Brand copywrite details */}
-          <Footer />
+          <Footer isAdmin={isAdminAuthenticated} />
         </div>
       </div>
 

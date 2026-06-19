@@ -26,7 +26,7 @@ export default function Hero({ profile, onOpenProfile, isAdmin = false }: HeroPr
   const socialLinks = [
     { icon: <Github className="w-5 h-5" />, href: 'https://github.com/yves-roland17', label: 'GitHub' },
     { icon: <Linkedin className="w-5 h-5" />, href: '#', label: 'LinkedIn' },
-  ];
+  ].filter(link => isAdmin || link.label === 'LinkedIn');
 
   const containerVariants = {
     hidden: { opacity: 0 },

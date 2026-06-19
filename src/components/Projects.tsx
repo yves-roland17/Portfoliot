@@ -6,9 +6,10 @@ import ProjectCard from './ProjectCard';
 
 interface ProjectsProps {
   projects: Project[];
+  isAdmin?: boolean;
 }
 
-export default function Projects({ projects }: ProjectsProps) {
+export default function Projects({ projects, isAdmin = false }: ProjectsProps) {
   const [filter, setFilter] = useState<string>('Tous');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -121,6 +122,7 @@ export default function Projects({ projects }: ProjectsProps) {
                   <ProjectCard
                     project={project}
                     onSelect={setSelectedProject}
+                    isAdmin={isAdmin}
                   />
                 </motion.div>
               ))}
@@ -198,7 +200,7 @@ export default function Projects({ projects }: ProjectsProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {selectedProject.githubUrl && (
+                      {isAdmin && selectedProject.githubUrl && (
                         <a
                           href={selectedProject.githubUrl}
                           target="_blank"

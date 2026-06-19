@@ -1,7 +1,11 @@
 import React from 'react';
 import { Sparkles, ArrowUp, Github, Linkedin, Heart } from 'lucide-react';
 
-export default function Footer() {
+interface FooterProps {
+  isAdmin?: boolean;
+}
+
+export default function Footer({ isAdmin = false }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   const handleScrollToTop = () => {
@@ -35,13 +39,15 @@ export default function Footer() {
         {/* Action button trigger anchors */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <a
-              href="#"
-              className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 border border-transparent hover:border-slate-200 dark:hover:border-slate-800 text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-all text-xs"
-              aria-label="GitHub Repository"
-            >
-              <Github className="w-4 h-4" />
-            </a>
+            {isAdmin && (
+              <a
+                href="#"
+                className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 border border-transparent hover:border-slate-200 dark:hover:border-slate-800 text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-all text-xs"
+                aria-label="GitHub Repository"
+              >
+                <Github className="w-4 h-4" />
+              </a>
+            )}
             <a
               href="#"
               className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 border border-transparent hover:border-slate-200 dark:hover:border-slate-800 text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-all text-xs"
