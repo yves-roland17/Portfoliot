@@ -106,7 +106,7 @@ export default function Contact({ profile, isAdmin }: ContactProps) {
         
         if (response.ok) {
           setStatus('success');
-          setStatusMessage('Votre message a été enregistré avec succès en base de données et envoyé par e-mail à roland.tia@epitech.eu !');
+          setStatusMessage('Votre message a été enregistré avec succès en base de données et envoyé par e-mail à roland.tia@epitech.eu ! Remarque : pour le tout premier envoi, FormSubmit vous envoie un e-mail à confirmer (pensez à vérifier vos courriers indésirables / Spams) pour de futurs messages directs !');
           // Reset form
           setName('');
           setEmail('');

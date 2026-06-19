@@ -591,33 +591,35 @@ export class DatabaseService {
       );
     }
 
-    // Auto routing of email to roland.tia@epitech.eu
+    // Auto routing of email to roland.tia@epitech.eu asynchronously (non-blocking) in background
     if (data.autoSendEmail !== false) {
-      try {
-        console.log('[NestJS] Forwarding contact message to roland.tia@epitech.eu via FormSubmit...');
-        const emailTo = 'roland.tia@epitech.eu';
-        
-        // We make a server-side POST request to FormSubmit to safely & securely route the message
-        const response = await fetch(`https://formsubmit.co/ajax/${emailTo}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            _subject: data.subject || 'Nouveau message de votre Portfolio',
-            message: data.message,
-            _honey: '' // Anti-spam honeypot
-          })
-        });
+      const emailTo = 'roland.tia@epitech.eu';
+      const msgData = {
+        name: data.name,
+        email: data.email,
+        _subject: data.subject || 'Nouveau message de votre Portfolio',
+        message: data.message,
+        _honey: '' // Anti-spam honeypot
+      };
 
-        const resBody = await response.json();
-        console.log('[NestJS] FormSubmit email sending result:', resBody);
-      } catch (err) {
-        console.error('[NestJS] Error forwarding email via FormSubmit:', err);
-      }
+      // Execute in background IIFE so it doesn't block the HTTP response
+      (async () => {
+        try {
+          console.log('[NestJS] Background forwarding contact message to roland.tia@epitech.eu via FormSubmit...');
+          const response = await fetch(`https://formsubmit.co/ajax/${emailTo}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(msgData)
+          });
+          const resBody = await response.json();
+          console.log('[NestJS] FormSubmit background email sending result:', resBody);
+        } catch (err) {
+          console.error('[NestJS] Error forwarding email via FormSubmit in background:', err);
+        }
+      })();
     }
 
     return { success: true };
