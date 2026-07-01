@@ -157,17 +157,10 @@ export default function Navbar({ darkMode, setDarkMode, profile, onOpenProfile, 
 
           {/* New Admin CRUD Console trigger */}
           <motion.button
-            whileHover={{ scale: 1.05, rotate: 20 }}
-            whileTap={{ scale: 0.95 }}
             onClick={onOpenAdmin}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:text-indigo-550 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-sm relative group"
-            aria-label="Console d'administration (CRUD)"
-            title="Console d'administration (CRUD)"
+            className="p-2 rounded-xl opacity-0 cursor-default select-none relative shrink-0"
           >
-            <Settings className="w-5 h-5 text-indigo-505 dark:text-indigo-400" />
-            <span className="absolute -bottom-9 right-0 bg-slate-900 text-white font-mono text-[9px] py-1 px-2.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg border border-slate-700">
-              Admin CRUD Panel
-            </span>
+            <Settings className="w-5 h-5" />
           </motion.button>
         </div>
 
@@ -201,11 +194,9 @@ export default function Navbar({ darkMode, setDarkMode, profile, onOpenProfile, 
           {/* Mobile Admin Trigger button */}
           <button
             onClick={onOpenAdmin}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 cursor-pointer shrink-0"
-            aria-label="Admin Interface (CRUD)"
-            title="Console d'administration (CRUD)"
+            className="p-2 rounded-lg opacity-0 cursor-default select-none shrink-0"
           >
-            <Settings className="w-5 h-5 animate-spin-slow" />
+            <Settings className="w-5 h-5" />
           </button>
 
           <button

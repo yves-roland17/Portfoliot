@@ -147,13 +147,13 @@ export default function AdminPanel({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.toLowerCase() === 'admin') {
+    if (passcode === 'tiadoueu@') {
       setIsAuthenticated(true);
       setAuthError('');
       localStorage.setItem('td_dev_admin_auth', 'true');
       if (onAuthChange) onAuthChange(true);
     } else {
-      setAuthError('Mot de passe incorrect. Astuce : utilisez "admin"');
+      setAuthError('Mot de passe incorrect.');
     }
   };
 
@@ -435,7 +435,6 @@ export default function AdminPanel({
                   <input
                     type="password"
                     required
-                    placeholder="Entrez 'admin'"
                     value={passcode}
                     onChange={(e) => setPasscode(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-slate-250 dark:border-white/5 bg-slate-50/5 dark:bg-white/3 text-center font-mono placeholder-slate-400 text-sm focus:ring-1 focus:ring-indigo-500 text-slate-900 dark:text-white focus:outline-none"
@@ -460,7 +459,7 @@ export default function AdminPanel({
               <div className="pt-2 flex items-start gap-2 bg-indigo-50/50 dark:bg-white/3 border border-indigo-100/20 dark:border-white/5 p-3 rounded-xl text-[10px] text-indigo-750 dark:text-indigo-300 max-w-sm text-left">
                 <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                 <p className="leading-normal">
-                  Astuce : Tapez simplement <strong>admin</strong> (en minuscules) pour vous connecter instantanément ! Ce mot de passe est sécurisé localement.
+                  Veuillez saisir votre mot de passe d'administration sécurisé.
                 </p>
               </div>
             </div>
