@@ -45,6 +45,44 @@ export default function AdminPanel({
   const [authError, setAuthError] = useState('');
   const [activeTab, setActiveTab] = useState<'profile' | 'projects' | 'skills' | 'experiences'>('profile');
 
+  // Custom non-blocking alert/confirm states
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    type: 'project' | 'skill' | 'experience';
+    id: string;
+    title: string;
+  } | null>(null);
+  const [toastMessage, setToastMessage] = useState<{
+    text: string;
+    type: 'success' | 'error';
+  } | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => {
+      setToastMessage(current => current?.text === text ? null : current);
+    }, 4000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteConfirm) return;
+
+    if (deleteConfirm.type === 'project') {
+      const updated = projects.filter(p => p.id !== deleteConfirm.id);
+      onUpdateProjects(updated);
+      showToast('Projet supprimé avec succès ! 🗑️', 'success');
+    } else if (deleteConfirm.type === 'skill') {
+      const updated = skills.filter(s => s.name !== deleteConfirm.id);
+      onUpdateSkills(updated);
+      showToast('Compétence supprimée avec succès ! 🗑️', 'success');
+    } else if (deleteConfirm.type === 'experience') {
+      const updated = experiences.filter(e => e.id !== deleteConfirm.id);
+      onUpdateExperiences(updated);
+      showToast('Expérience supprimée avec succès ! 🗑️', 'success');
+    }
+
+    setDeleteConfirm(null);
+  };
+
   const [dbStatus, setDbStatus] = useState<{
     isMongo: boolean;
     isMySQL?: boolean;
@@ -136,7 +174,7 @@ export default function AdminPanel({
       photo: profPhoto
     });
     // Add brief animation or indication
-    alert('Profil enregistré avec succès ! 🎉');
+    showToast('Profil enregistré avec succès ! 🎉', 'success');
   };
 
   // PROJECTS CRUD OPERATIONS
@@ -171,9 +209,13 @@ export default function AdminPanel({
   };
 
   const handleDeleteProject = (id: string) => {
-    if (window.confirm('Voulez-vous vraiment supprimer ce projet ?')) {
-      const updated = projects.filter(p => p.id !== id);
-      onUpdateProjects(updated);
+    const proj = projects.find(p => p.id === id);
+    if (proj) {
+      setDeleteConfirm({
+        type: 'project',
+        id,
+        title: proj.title
+      });
     }
   };
 
@@ -232,10 +274,11 @@ export default function AdminPanel({
   };
 
   const handleDeleteSkill = (nameToDelete: string) => {
-    if (window.confirm(`Voulez-vous vraiment supprimer la compétence "${nameToDelete}" ?`)) {
-      const updated = skills.filter(s => s.name !== nameToDelete);
-      onUpdateSkills(updated);
-    }
+    setDeleteConfirm({
+      type: 'skill',
+      id: nameToDelete,
+      title: nameToDelete
+    });
   };
 
   const handleSaveSkill = (e: React.FormEvent) => {
@@ -252,13 +295,15 @@ export default function AdminPanel({
       // Edit mode: replace old skill with the edit
       const updated = skills.map(s => s.name === editingSkillName ? targetSkill : s);
       onUpdateSkills(updated);
+      showToast('Compétence mise à jour ! ✨', 'success');
     } else {
       // Add mode: verify if already exists
       if (skills.some(s => s.name.toLowerCase() === skillName.toLowerCase())) {
-        alert('Cette compétence existe déjà !');
+        showToast('Cette compétence existe déjà !', 'error');
         return;
       }
       onUpdateSkills([...skills, targetSkill]);
+      showToast('Compétence ajoutée avec succès ! ✨', 'success');
     }
 
     setIsAddingSkill(false);
@@ -287,9 +332,13 @@ export default function AdminPanel({
   };
 
   const handleDeleteExperience = (id: string) => {
-    if (window.confirm('Voulez-vous vraiment supprimer cette expérience ?')) {
-      const updated = experiences.filter(e => e.id !== id);
-      onUpdateExperiences(updated);
+    const exp = experiences.find(e => e.id === id);
+    if (exp) {
+      setDeleteConfirm({
+        type: 'experience',
+        id,
+        title: `${exp.role} chez ${exp.company}`
+      });
     }
   };
 
@@ -1272,6 +1321,67 @@ export default function AdminPanel({
 
               </div>
             </div>
+
+            {/* Custom confirm delete overlay */}
+            <AnimatePresence>
+              {deleteConfirm && (
+                <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-200 dark:border-white/10 text-center space-y-4"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+                      <Trash2 className="w-6 h-6 animate-pulse" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-display font-bold text-slate-900 dark:text-white text-base">
+                        Confirmer la suppression ?
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Voulez-vous vraiment supprimer "{deleteConfirm.title}" ? Cette action est irréversible.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirm(null)}
+                        className="flex-1 py-2 px-4 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-white/5 text-xs font-semibold cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmDelete}
+                        className="flex-1 py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-550 text-white text-xs font-bold shadow-lg shadow-rose-600/10 cursor-pointer"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* Custom toast notifications */}
+            <AnimatePresence>
+              {toastMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 50, x: "-50%" }}
+                  animate={{ opacity: 1, y: 0, x: "-50%" }}
+                  exit={{ opacity: 0, y: 50, x: "-50%" }}
+                  className={`absolute bottom-6 left-1/2 z-[60] px-4 py-3 rounded-xl shadow-xl border flex items-center gap-2 max-w-md ${
+                    toastMessage.type === 'error'
+                      ? 'bg-rose-600 border-rose-550 text-white'
+                      : 'bg-slate-900 dark:bg-slate-800 text-white border-slate-800 dark:border-slate-700'
+                  }`}
+                >
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${toastMessage.type === 'error' ? 'bg-white' : 'bg-emerald-400'}`} />
+                  <span className="text-xs font-semibold">{toastMessage.text}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
           </motion.div>
         )}

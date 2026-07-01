@@ -173,7 +173,7 @@ export default function Hero({ profile, onOpenProfile, isAdmin = false }: HeroPr
             variants={itemVariants}
             className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl font-light leading-relaxed max-w-xl mb-8"
           >
-            Je suis développeur d’applications web créatives. Je combine une approche rigoureuse en ingénierie de code avec des animations soignées pour concevoir des produits inoubliables.
+            Développeur fullstack junior capable de s'adapter rapidement à de nouveaux environnements techniques, avec un bon confort en logique de programmation (php, javascript, python) et une polyvalence technique qui me permet de travailler avec divers frameworks (flask api, react.js, vue.js, laravel, next.js, react native). Curieux et toujours en quête de progression, je souhaite mettre mes compétences au profit de votre entreprise.
           </motion.p>
 
           <motion.div
