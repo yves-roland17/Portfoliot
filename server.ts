@@ -174,6 +174,14 @@ export class DatabaseService {
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB;
     `);
+
+    // Categories table
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(255)
+      ) ENGINE=InnoDB;
+    `);
     
     console.log('[NestJS] Tables successfully checked/created.');
   }
@@ -326,6 +334,24 @@ export class DatabaseService {
           await this.pool.query(
             'INSERT INTO experiences (id, role, company, duration, description, skills) VALUES (?, ?, ?, ?, ?, ?)',
             exp
+          );
+        }
+      }
+
+      // 5. Seed Categories
+      const [rowsCategories]: any = await this.pool.query('SELECT COUNT(*) as count FROM categories');
+      if (rowsCategories && rowsCategories[0] && rowsCategories[0].count === 0) {
+        console.log('[NestJS] Seeding empty MySQL with default categories...');
+        const initialCategories = [
+          ['cat1', 'Frontend'],
+          ['cat2', 'Backend'],
+          ['cat3', 'DevOps & Tools'],
+          ['cat4', 'Languages']
+        ];
+        for (const cat of initialCategories) {
+          await this.pool.query(
+            'INSERT INTO categories (id, name) VALUES (?, ?)',
+            cat
           );
         }
       }
@@ -691,6 +717,56 @@ export class DatabaseService {
     return { success: true };
   }
 
+  // Categories methods
+  async getCategories() {
+    if (this.isMySQL && this.pool) {
+      try {
+        const [rows] = await this.pool.query('SELECT * FROM categories');
+        return rows;
+      } catch (err) {
+        console.error('[NestJS] MySQL query error in getCategories:', err);
+      }
+    }
+    return await all('SELECT * FROM categories');
+  }
+
+  async saveCategory(data: any) {
+    if (this.isMySQL && this.pool) {
+      try {
+        const [exists]: any = await this.pool.query('SELECT id FROM categories WHERE id = ?', [data.id]);
+        if (exists && exists.length > 0) {
+          await this.pool.query('UPDATE categories SET name = ? WHERE id = ?', [data.name, data.id]);
+        } else {
+          await this.pool.query('INSERT INTO categories (id, name) VALUES (?, ?)', [data.id, data.name]);
+        }
+        return { success: true };
+      } catch (err) {
+        console.error('[NestJS] MySQL query error in saveCategory:', err);
+      }
+    }
+    // Fallback
+    const exists = await get('SELECT id FROM categories WHERE id = ?', [data.id]);
+    if (exists) {
+      await run('UPDATE categories SET name = ? WHERE id = ?', [data.name, data.id]);
+    } else {
+      await run('INSERT INTO categories (id, name) VALUES (?, ?)', [data.id, data.name]);
+    }
+    return { success: true };
+  }
+
+  async deleteCategory(id: string) {
+    if (this.isMySQL && this.pool) {
+      try {
+        await this.pool.query('DELETE FROM categories WHERE id = ?', [id]);
+        return { success: true };
+      } catch (err) {
+        console.error('[NestJS] MySQL query error in deleteCategory:', err);
+      }
+    }
+    await run('DELETE FROM categories WHERE id = ?', [id]);
+    return { success: true };
+  }
+
   getDatabaseStatus() {
     return {
       isMySQL: this.isMySQL,
@@ -826,6 +902,22 @@ export class ApiController {
   @Post('contacts')
   async saveContact(@Body() body: any) {
     return await this.dbService.saveContact(body);
+  }
+
+  // 6. Categories Endpoints
+  @Get('categories')
+  async getCategories() {
+    return await this.dbService.getCategories();
+  }
+
+  @Post('categories')
+  async saveCategory(@Body() body: any) {
+    return await this.dbService.saveCategory(body);
+  }
+
+  @Delete('categories/:id')
+  async deleteCategory(@Param('id') id: string) {
+    return await this.dbService.deleteCategory(id);
   }
 }
 

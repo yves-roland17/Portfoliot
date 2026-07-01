@@ -6,7 +6,7 @@ import {
   ExternalLink, Github, RefreshCw, ArrowRight, HelpCircle, Code, Briefcase,
   Camera
 } from 'lucide-react';
-import { Project, Skill, Experience as ExperienceType } from '../types';
+import { Project, Skill, Experience as ExperienceType, Category } from '../types';
 import { UserProfile } from './ProfileModal';
 
 interface AdminPanelProps {
@@ -20,6 +20,8 @@ interface AdminPanelProps {
   onUpdateSkills: (sk: Skill[]) => void;
   experiences: ExperienceType[];
   onUpdateExperiences: (exp: ExperienceType[]) => void;
+  categories: Category[];
+  onUpdateCategories: (cats: Category[]) => void;
   defaultAvatarUrl: string;
   onAuthChange?: (auth: boolean) => void;
 }
@@ -35,6 +37,8 @@ export default function AdminPanel({
   onUpdateSkills,
   experiences,
   onUpdateExperiences,
+  categories,
+  onUpdateCategories,
   defaultAvatarUrl,
   onAuthChange
 }: AdminPanelProps) {
@@ -44,14 +48,19 @@ export default function AdminPanel({
   });
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
-  const [activeTab, setActiveTab] = useState<'profile' | 'projects' | 'skills' | 'experiences'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'projects' | 'skills' | 'experiences' | 'categories'>('profile');
 
   // Custom non-blocking alert/confirm states
   const [deleteConfirm, setDeleteConfirm] = useState<{
-    type: 'project' | 'skill' | 'experience';
+    type: 'project' | 'skill' | 'experience' | 'category';
     id: string;
     title: string;
   } | null>(null);
+
+  // CATEGORIES CRUD STATES
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [toastMessage, setToastMessage] = useState<{
     text: string;
     type: 'success' | 'error';
@@ -79,6 +88,10 @@ export default function AdminPanel({
       const updated = experiences.filter(e => e.id !== deleteConfirm.id);
       onUpdateExperiences(updated);
       showToast('Expérience supprimée avec succès ! 🗑️', 'success');
+    } else if (deleteConfirm.type === 'category') {
+      const updated = categories.filter(c => c.id !== deleteConfirm.id);
+      onUpdateCategories(updated);
+      showToast('Catégorie technique supprimée avec succès ! 🗑️', 'success');
     }
 
     setDeleteConfirm(null);
@@ -395,6 +408,60 @@ export default function AdminPanel({
     setEditingExperienceId(null);
   };
 
+  // CATEGORIES CRUD OPERATIONS
+  const handleStartAddCategory = () => {
+    setEditingCategoryId(null);
+    setCategoryName('');
+    setIsAddingCategory(true);
+  };
+
+  const handleEditCategory = (c: Category) => {
+    setEditingCategoryId(c.id);
+    setCategoryName(c.name);
+    setIsAddingCategory(true);
+  };
+
+  const handleDeleteCategory = (id: string) => {
+    const cat = categories.find(c => c.id === id);
+    if (cat) {
+      setDeleteConfirm({
+        type: 'category',
+        id,
+        title: cat.name
+      });
+    }
+  };
+
+  const handleSaveCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryName.trim()) {
+      showToast('Le nom de la catégorie ne peut pas être vide !', 'error');
+      return;
+    }
+
+    const targetCategory: Category = {
+      id: editingCategoryId || 'cat_' + Date.now(),
+      name: categoryName.trim()
+    };
+
+    if (editingCategoryId) {
+      const updated = categories.map(c => c.id === editingCategoryId ? targetCategory : c);
+      onUpdateCategories(updated);
+      showToast('Catégorie mise à jour avec succès ! ✨', 'success');
+    } else {
+      if (categories.some(c => c.name.toLowerCase() === categoryName.trim().toLowerCase())) {
+        showToast('Cette catégorie existe déjà !', 'error');
+        return;
+      }
+      onUpdateCategories([...categories, targetCategory]);
+      showToast('Catégorie ajoutée avec succès ! ✨', 'success');
+    }
+
+    setIsAddingCategory(false);
+    setEditingCategoryId(null);
+    setCategoryName('');
+  };
+
   // Pre-configured icons drop selector mapping list
   const iconOptions = [
     { value: 'CodeIcon', label: 'Feuille de code' },
@@ -566,7 +633,8 @@ export default function AdminPanel({
                   { id: 'profile', label: 'Profil Personnel', icon: <User className="w-4 h-4" /> },
                   { id: 'projects', label: 'Projets Portfolio', icon: <LayoutGrid className="w-4 h-4" /> },
                   { id: 'skills', label: 'Mes Compétences', icon: <Cpu className="w-4 h-4" /> },
-                  { id: 'experiences', label: 'Mes Expériences', icon: <Briefcase className="w-4 h-4" /> }
+                  { id: 'experiences', label: 'Mes Expériences', icon: <Briefcase className="w-4 h-4" /> },
+                  { id: 'categories', label: 'Catégories Techniques', icon: <FolderHeart className="w-4 h-4" /> }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -575,6 +643,7 @@ export default function AdminPanel({
                       setIsAddingProject(false);
                       setIsAddingSkill(false);
                       setIsAddingExperience(false);
+                      setIsAddingCategory(false);
                     }}
                     className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-xs font-semibold cursor-pointer transition-all shrink-0 sm:shrink ${
                       activeTab === tab.id
@@ -779,13 +848,16 @@ export default function AdminPanel({
                             <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400">Catégorie du Projet</label>
                             <select
                               value={projCategory}
-                              onChange={(e) => setProjCategory(e.target.value as any)}
+                              onChange={(e) => setProjCategory(e.target.value)}
                               className="w-full px-3 py-2 rounded-xl border border-slate-201 dark:border-white/5 bg-white dark:bg-black text-slate-900 dark:text-white text-xs"
                             >
-                              <option value="Frontend">Frontend</option>
-                              <option value="Backend">Backend</option>
-                              <option value="Fullstack">Fullstack</option>
-                              <option value="Web3">Web3</option>
+                              {categories.map((c) => (
+                                <option key={c.id} value={c.name}>
+                                  {c.name === 'DevOps & Tools' ? 'DevOps & Outils' : c.name === 'Languages' ? 'Langages' : c.name}
+                                </option>
+                              ))}
+                              {!categories.some(c => c.name === 'Fullstack') && <option value="Fullstack">Fullstack</option>}
+                              {!categories.some(c => c.name === 'Web3') && <option value="Web3">Web3</option>}
                             </select>
                           </div>
 
@@ -1102,13 +1174,14 @@ export default function AdminPanel({
                             <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400">Catégorie technique</label>
                             <select
                               value={skillCategory}
-                              onChange={(e) => setSkillCategory(e.target.value as any)}
+                              onChange={(e) => setSkillCategory(e.target.value)}
                               className="w-full px-3 py-2 rounded-xl border border-slate-201 dark:border-white/5 bg-white dark:bg-black text-slate-900 dark:text-white text-xs"
                             >
-                              <option value="Frontend">Frontend</option>
-                              <option value="Backend">Backend</option>
-                              <option value="DevOps & Tools">DevOps & Outils</option>
-                              <option value="Languages">Langages</option>
+                              {categories.map((c) => (
+                                <option key={c.id} value={c.name}>
+                                  {c.name === 'DevOps & Tools' ? 'DevOps & Outils' : c.name === 'Languages' ? 'Langages' : c.name}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         </div>
@@ -1425,6 +1498,137 @@ export default function AdminPanel({
                       </div>
                     )}
 
+                  </div>
+                )}
+
+                {/* 5. CATEGORIES CRUD PANEL */}
+                {activeTab === 'categories' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-slate-200/30 dark:border-white/5 pb-4">
+                      <div>
+                        <h4 className="font-display font-bold text-lg text-slate-800 dark:text-white">
+                          Catégories Techniques
+                        </h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Gérez les catégories utilisées pour regrouper vos compétences techniques et projets.
+                        </p>
+                      </div>
+                      {!isAddingCategory && (
+                        <button
+                          type="button"
+                          onClick={handleStartAddCategory}
+                          className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-750 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 rounded-xl text-xs font-bold font-mono shadow-md cursor-pointer flex items-center gap-1.5 shrink-0"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Nouvelle Catégorie
+                        </button>
+                      )}
+                    </div>
+
+                    {isAddingCategory ? (
+                      <motion.form
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        onSubmit={handleSaveCategory}
+                        className="glass p-5 rounded-2xl border border-indigo-100/10 dark:border-white/5 space-y-4"
+                      >
+                        <div className="flex items-center justify-between border-b border-slate-200/30 dark:border-white/5 pb-2.5">
+                          <h5 className="font-display font-bold text-sm text-slate-800 dark:text-white">
+                            {editingCategoryId ? 'Modifier la catégorie' : 'Créer une catégorie'}
+                          </h5>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddingCategory(false);
+                              setEditingCategoryId(null);
+                            }}
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 rounded-full cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400">Nom de la catégorie</label>
+                          <input
+                            type="text"
+                            required
+                            value={categoryName}
+                            onChange={(e) => setCategoryName(e.target.value)}
+                            placeholder="Ex: Cloud & Architecture, Mobile Development, Security..."
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/5 bg-slate-50/5 dark:bg-white/3 text-slate-900 dark:text-white text-xs"
+                          />
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddingCategory(false);
+                              setEditingCategoryId(null);
+                            }}
+                            className="px-4 py-2 border border-slate-200 dark:border-white/5 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl text-xs font-semibold cursor-pointer"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-indigo-600 dark:bg-white text-white dark:text-slate-950 hover:bg-indigo-750 dark:hover:bg-slate-100 rounded-xl text-xs font-bold cursor-pointer"
+                          >
+                            Enregistrer
+                          </button>
+                        </div>
+                      </motion.form>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {categories.length === 0 ? (
+                          <div className="col-span-full py-12 text-center text-slate-400 dark:text-slate-550 space-y-2">
+                            <ShieldAlert className="w-8 h-8 mx-auto stroke-1" />
+                            <p className="text-xs">Aucune catégorie technique configurée.</p>
+                          </div>
+                        ) : (
+                          categories.map((cat) => (
+                            <div
+                              key={cat.id}
+                              className="flex items-center justify-between p-4 rounded-2xl glass hover:bg-slate-100/10 transition-colors border border-slate-200/40 dark:border-white/5 group"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-550/15 font-mono text-[10px] font-bold">
+                                  {cat.name.slice(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                  <h5 className="font-display font-semibold text-sm text-slate-900 dark:text-white">
+                                    {cat.name}
+                                  </h5>
+                                  <p className="text-[10px] text-slate-400 font-mono">
+                                    ID: {cat.id}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditCategory(cat)}
+                                  className="p-1.5 border border-slate-200 dark:border-white/5 rounded-lg text-slate-500 hover:text-indigo-650 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/3 transition-colors cursor-pointer"
+                                  title="Modifier"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCategory(cat.id)}
+                                  className="p-1.5 border border-rose-220 dark:border-rose-950 text-rose-500 hover:text-rose-650 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 

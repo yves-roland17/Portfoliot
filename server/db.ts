@@ -51,12 +51,18 @@ interface Experience {
   skills: string; // Store as comma/newline separated string
 }
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 interface DatabaseState {
   profile: Profile[];
   projects: Project[];
   skills: Skill[];
   contacts: Contact[];
   experiences: Experience[];
+  categories: Category[];
 }
 
 let dbData: DatabaseState = {
@@ -64,7 +70,8 @@ let dbData: DatabaseState = {
   projects: [],
   skills: [],
   contacts: [],
-  experiences: []
+  experiences: [],
+  categories: []
 };
 
 let writing = false;
@@ -101,6 +108,7 @@ async function loadDb() {
     if (!dbData.skills) dbData.skills = [];
     if (!dbData.contacts) dbData.contacts = [];
     if (!dbData.experiences) dbData.experiences = [];
+    if (!dbData.categories) dbData.categories = [];
   } catch (err: any) {
     if (err.code !== 'ENOENT') {
       console.error('Failed to read database.json:', err);
@@ -233,6 +241,28 @@ export async function run(sql: string, params: any[] = []): Promise<{ id: number
     dbData.experiences = dbData.experiences.filter(e => e.id !== String(id));
     changes = initialLen - dbData.experiences.length;
   }
+  // 13. UPDATE categories
+  else if (/UPDATE categories SET/i.test(sqlNormalized)) {
+    const [name, id] = params;
+    const item = dbData.categories.find(c => c.id === String(id));
+    if (item) {
+      item.name = name;
+      changes = 1;
+    }
+  }
+  // 14. INSERT INTO categories
+  else if (/INSERT INTO categories/i.test(sqlNormalized)) {
+    const [id, name] = params;
+    dbData.categories.push({ id: String(id), name });
+    changes = 1;
+  }
+  // 15. DELETE FROM categories WHERE id = ?
+  else if (/DELETE FROM categories WHERE id = \?/i.test(sqlNormalized)) {
+    const [id] = params;
+    const initialLen = dbData.categories.length;
+    dbData.categories = dbData.categories.filter(c => c.id !== String(id));
+    changes = initialLen - dbData.categories.length;
+  }
 
   await saveDb();
   return { id: lastID, changes };
@@ -264,6 +294,10 @@ export async function all(sql: string, params: any[] = []): Promise<any[]> {
   // 5. SELECT * FROM experiences
   if (/SELECT \* FROM experiences/i.test(sqlNormalized)) {
     return [...dbData.experiences];
+  }
+  // 6. SELECT * FROM categories
+  if (/SELECT \* FROM categories/i.test(sqlNormalized)) {
+    return [...dbData.categories];
   }
 
   return [];
@@ -306,12 +340,28 @@ export async function get(sql: string, params: any[] = []): Promise<any> {
     const item = dbData.experiences.find(e => e.id === String(id));
     return item ? { id: item.id } : null;
   }
+  // 7. SELECT id FROM categories WHERE id = ?
+  if (/SELECT .* FROM categories WHERE id = \?/i.test(sqlNormalized)) {
+    const [id] = params;
+    const item = dbData.categories.find(c => c.id === String(id));
+    return item ? { id: item.id } : null;
+  }
 
   return null;
 }
 
 export async function initDb() {
   await loadDb();
+
+  // Seed default categories
+  if (!dbData.categories || dbData.categories.length === 0) {
+    dbData.categories = [
+      { id: 'cat1', name: 'Frontend' },
+      { id: 'cat2', name: 'Backend' },
+      { id: 'cat3', name: 'DevOps & Tools' },
+      { id: 'cat4', name: 'Languages' }
+    ];
+  }
 
   // Seed default structure
   if (dbData.profile.length === 0) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Code,
@@ -16,21 +16,32 @@ import {
   Braces,
   Binary
 } from 'lucide-react';
-import { Skill } from '../types';
+import { Skill, Category } from '../types';
 
 interface SkillsProps {
   skills: Skill[];
+  categories?: Category[];
 }
 
-export default function Skills({ skills }: SkillsProps) {
-  const [selectedCategory, setSelectedCategory] = useState<'Frontend' | 'Backend' | 'DevOps & Tools' | 'Languages'>('Frontend');
-
-  const categories: ('Frontend' | 'Backend' | 'DevOps & Tools' | 'Languages')[] = [
-    'Frontend',
-    'Backend',
-    'DevOps & Tools',
-    'Languages'
+export default function Skills({ skills, categories: dynamicCategories }: SkillsProps) {
+  const fallbackCategories = [
+    { id: 'cat1', name: 'Frontend' },
+    { id: 'cat2', name: 'Backend' },
+    { id: 'cat3', name: 'DevOps & Tools' },
+    { id: 'cat4', name: 'Languages' }
   ];
+
+  const categoriesList = dynamicCategories && dynamicCategories.length > 0 ? dynamicCategories : fallbackCategories;
+
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    return categoriesList[0]?.name || 'Frontend';
+  });
+
+  useEffect(() => {
+    if (categoriesList.length > 0 && !categoriesList.some(c => c.name === selectedCategory)) {
+      setSelectedCategory(categoriesList[0].name);
+    }
+  }, [categoriesList]);
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -102,21 +113,21 @@ export default function Skills({ skills }: SkillsProps) {
         <div className="grid md:grid-cols-12 gap-8 items-start">
           {/* Category column selector */}
           <div className="md:col-span-4 flex flex-col gap-2">
-            {categories.map((cat, index) => (
+            {categoriesList.map((cat, index) => (
               <motion.button
-                key={cat}
+                key={cat.id}
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: index * 0.08 }}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => setSelectedCategory(cat.name)}
                 className={`flex items-center justify-between p-4.5 rounded-2xl font-display font-semibold text-left transition-all relative overflow-hidden group cursor-pointer ${
-                  selectedCategory === cat
+                  selectedCategory === cat.name
                     ? 'text-white font-bold'
                     : 'text-slate-750 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white glass border-slate-200/30 dark:border-white/5 hover:bg-slate-55/50 dark:hover:bg-white/10 shadow-sm'
                 }`}
               >
-                {selectedCategory === cat && (
+                {selectedCategory === cat.name && (
                   <motion.div
                     layoutId="activeCategoryBg"
                     className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600"
@@ -124,10 +135,10 @@ export default function Skills({ skills }: SkillsProps) {
                     transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                   />
                 )}
-                <span className="relative z-10">{cat === 'DevOps & Tools' ? 'DevOps & Outils' : cat === 'Languages' ? 'Langages' : cat}</span>
+                <span className="relative z-10">{cat.name === 'DevOps & Tools' ? 'DevOps & Outils' : cat.name === 'Languages' ? 'Langages' : cat.name}</span>
                 
                 <span className={`w-2.5 h-2.5 rounded-full transition-all ${
-                  selectedCategory === cat 
+                  selectedCategory === cat.name 
                     ? 'bg-white scale-110' 
                     : 'bg-slate-300 dark:bg-slate-700 group-hover:bg-indigo-500'
                 }`} />

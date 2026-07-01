@@ -3,7 +3,7 @@ export interface Project {
   title: string;
   description: string;
   longDescription?: string;
-  category: 'Frontend' | 'Backend' | 'Fullstack' | 'Web3';
+  category: string;
   tags: string[];
   image: string;
   demoUrl?: string;
@@ -15,7 +15,7 @@ export interface Project {
 export interface Skill {
   name: string;
   level: number; // 0-100 indicating percentage
-  category: 'Frontend' | 'Backend' | 'DevOps & Tools' | 'Web Design' | 'Languages';
+  category: string;
   icon: string; // lucide icon name
 }
 
@@ -26,4 +26,9 @@ export interface Experience {
   duration: string;
   description: string[];
   skills: string[];
+}
+
+export interface Category {
+  id: string;
+  name: string;
 }

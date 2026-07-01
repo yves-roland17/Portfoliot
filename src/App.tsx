@@ -11,7 +11,7 @@ import Loader from './components/Loader';
 import ProfileModal, { UserProfile } from './components/ProfileModal';
 import AdminPanel from './components/AdminPanel';
 import { projectsData, skillsData, experiencesData } from './data';
-import { Project, Skill, Experience as ExperienceType } from './types';
+import { Project, Skill, Experience as ExperienceType, Category } from './types';
 // @ts-ignore
 import defaultAvatar from './assets/images/dev_avatar_1780673343898.png';
 
@@ -78,6 +78,23 @@ export default function App() {
     return experiencesData;
   });
 
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const saved = localStorage.getItem('td_dev_categories');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // ignore fallback
+      }
+    }
+    return [
+      { id: 'cat1', name: 'Frontend' },
+      { id: 'cat2', name: 'Backend' },
+      { id: 'cat3', name: 'DevOps & Tools' },
+      { id: 'cat4', name: 'Languages' }
+    ];
+  });
+
   // Fetch initial relational SQLite database data on startup to sync everything
   useEffect(() => {
     const fetchData = async () => {
@@ -111,6 +128,14 @@ export default function App() {
           const experiencesDataList = await experiencesRes.json();
           if (experiencesDataList && experiencesDataList.length > 0) {
             setExperiences(experiencesDataList);
+          }
+        }
+
+        const categoriesRes = await fetch('/api/categories');
+        if (categoriesRes.ok) {
+          const categoriesDataList = await categoriesRes.json();
+          if (categoriesDataList && categoriesDataList.length > 0) {
+            setCategories(categoriesDataList);
           }
         }
       } catch (err) {
@@ -231,6 +256,35 @@ export default function App() {
     }
   };
 
+  const handleCategoriesUpdate = async (newCategories: Category[]) => {
+    const prevCategories = [...categories];
+    setCategories(newCategories);
+    localStorage.setItem('td_dev_categories', JSON.stringify(newCategories));
+
+    try {
+      // Find deleted categories
+      const deleted = prevCategories.filter(c => !newCategories.some(nc => nc.id === c.id));
+      for (const d of deleted) {
+        await fetch(`/api/categories/${d.id}`, { method: 'DELETE' });
+      }
+
+      // Find added or updated categories
+      const addedOrUpdated = newCategories.filter(nc => {
+        const existing = prevCategories.find(c => c.id === nc.id);
+        return !existing || JSON.stringify(existing) !== JSON.stringify(nc);
+      });
+      for (const c of addedOrUpdated) {
+        await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(c)
+        });
+      }
+    } catch (err) {
+      console.error('Failed to sync categories change to database:', err);
+    }
+  };
+
   return (
     <>
       {/* Cinematic Screen Loader */}
@@ -270,7 +324,7 @@ export default function App() {
           <Projects projects={projects} isAdmin={isAdminAuthenticated} />
 
           {/* Skills Tab Layout */}
-          <Skills skills={skills} />
+          <Skills skills={skills} categories={categories} />
 
           {/* Path Journey */}
           <Experience experiences={experiences} />
@@ -304,6 +358,8 @@ export default function App() {
         onUpdateSkills={handleSkillsUpdate}
         experiences={experiences}
         onUpdateExperiences={handleExperiencesUpdate}
+        categories={categories}
+        onUpdateCategories={handleCategoriesUpdate}
         defaultAvatarUrl={defaultAvatar}
         onAuthChange={(auth) => setIsAdminAuthenticated(auth)}
       />
