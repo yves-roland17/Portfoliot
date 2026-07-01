@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Sparkles, LayoutGrid, Cpu, User, Plus, Trash2, Edit2, 
   Save, FolderHeart, ShieldAlert, KeyRound, AlertTriangle, Eye, Check,
-  ExternalLink, Github, RefreshCw, ArrowRight, HelpCircle, Code, Briefcase
+  ExternalLink, Github, RefreshCw, ArrowRight, HelpCircle, Code, Briefcase,
+  Camera
 } from 'lucide-react';
 import { Project, Skill, Experience as ExperienceType } from '../types';
 import { UserProfile } from './ProfileModal';
@@ -127,6 +128,8 @@ export default function AdminPanel({
   const [projFeatured, setProjFeatured] = useState(false);
   const [projRole, setProjRole] = useState('');
   const [isAddingProject, setIsAddingProject] = useState(false);
+  const [isExtractingScreenshot, setIsExtractingScreenshot] = useState(false);
+  const [screenshotService, setScreenshotService] = useState<'microlink' | 'thumio'>('microlink');
 
   // 3. Skills CRUD states
   const [editingSkillName, setEditingSkillName] = useState<string | null>(null);
@@ -252,6 +255,33 @@ export default function AdminPanel({
 
     setIsAddingProject(false);
     setEditingProjectId(null);
+  };
+
+  const handleExtractScreenshot = async () => {
+    if (!projDemoUrl || projDemoUrl === '#' || !projDemoUrl.startsWith('http')) {
+      showToast('Veuillez entrer un lien démo valide (commençant par http/https).', 'error');
+      return;
+    }
+
+    setIsExtractingScreenshot(true);
+    showToast('Génération de la capture d\'écran... 📸', 'success');
+
+    try {
+      let finalUrl = '';
+      if (screenshotService === 'microlink') {
+        finalUrl = `https://api.microlink.io?url=${encodeURIComponent(projDemoUrl)}&screenshot=true&embed=screenshot.url`;
+      } else {
+        finalUrl = `https://image.thum.io/get/width/1280/crop/800/${projDemoUrl}`;
+      }
+
+      setProjImage(finalUrl);
+      showToast('Capture d\'écran générée ! 🎯', 'success');
+    } catch (error) {
+      console.error('Erreur de capture:', error);
+      showToast('Erreur lors de la capture d\'écran.', 'error');
+    } finally {
+      setIsExtractingScreenshot(false);
+    }
   };
 
   // SKILLS CRUD OPERATIONS
@@ -815,10 +845,33 @@ export default function AdminPanel({
                                 onChange={(e) => setProjFeatured(e.target.checked)}
                                 className="w-4 h-4 text-indigo-650 rounded border-slate-300 focus:ring-indigo-500"
                               />
-                              Projet mis en avant (Featured)
+                               Projet mis en avant (Featured)
                             </label>
                           </div>
                         </div>
+
+                        {/* Image/Screenshot Preview Block */}
+                        {projImage && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400">Aperçu en direct du projet</label>
+                            <div className="relative aspect-video w-full max-w-md rounded-2xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 group">
+                              <img
+                                src={projImage}
+                                alt="Aperçu du projet"
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                  (e.target as any).src = 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=600';
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                                <span className="text-[10px] text-white/90 font-mono truncate max-w-full">
+                                  {projImage}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
@@ -827,7 +880,7 @@ export default function AdminPanel({
                               type="text"
                               value={projDemoUrl}
                               onChange={(e) => setProjDemoUrl(e.target.value)}
-                              placeholder="#"
+                              placeholder="https://votre-projet.com"
                               className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/5 bg-slate-50/5 dark:bg-white/3 text-slate-900 dark:text-white text-xs"
                             />
                           </div>
@@ -843,6 +896,63 @@ export default function AdminPanel({
                             />
                           </div>
                         </div>
+
+                        {/* Extraire la capture d'écran Section */}
+                        {projDemoUrl && projDemoUrl.startsWith('http') && projDemoUrl !== '#' && (
+                          <div className="p-4 rounded-2xl bg-indigo-500/5 dark:bg-white/3 border border-indigo-500/10 dark:border-white/5 space-y-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="space-y-0.5">
+                                <h6 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                                  <Camera className="w-4 h-4 text-indigo-500 animate-pulse" />
+                                  Générateur automatique de capture d'écran
+                                </h6>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                  Générez une capture d'écran en temps réel du site de démonstration pour l'image de votre projet.
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase">Moteur :</span>
+                                <select
+                                  value={screenshotService}
+                                  onChange={(e) => setScreenshotService(e.target.value as any)}
+                                  className="px-2 py-1 text-[10px] rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white focus:outline-none cursor-pointer font-semibold"
+                                >
+                                  <option value="microlink">Microlink API</option>
+                                  <option value="thumio">Thum.io</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-3 items-center">
+                              <button
+                                type="button"
+                                onClick={handleExtractScreenshot}
+                                disabled={isExtractingScreenshot}
+                                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-550 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50 cursor-pointer shrink-0"
+                              >
+                                {isExtractingScreenshot ? (
+                                  <>
+                                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Génération en cours...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Camera className="w-3.5 h-3.5" />
+                                    <span>Extraire et appliquer la capture</span>
+                                  </>
+                                )}
+                              </button>
+
+                              {projImage && projImage.includes('screenshot') && (
+                                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                                  <Check className="w-3.5 h-3.5 shrink-0" />
+                                  Capture appliquée à l'image du projet !
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="pt-2 flex gap-2 justify-end">
                           <button
