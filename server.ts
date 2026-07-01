@@ -5,6 +5,7 @@ import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import mysql from 'mysql2/promise';
+import nodemailer from 'nodemailer';
 import { initDb, run, all, get } from './server/db.js';
 
 // RESILIENT DUAL-MODE DATABASE SERVICE (MYSQL EXCLUSIVE OR LOCAL FALLBACK)
@@ -592,32 +593,97 @@ export class DatabaseService {
     }
 
     // Auto routing of email to roland.tia@epitech.eu asynchronously (non-blocking) in background
-    if (data.autoSendEmail !== false) {
+    if (data.autoSendEmail !== false || (process.env.SMTP_USER && process.env.SMTP_PASS)) {
       const emailTo = 'roland.tia@epitech.eu';
-      const msgData = {
-        name: data.name,
-        email: data.email,
-        _subject: data.subject || 'Nouveau message de votre Portfolio',
-        message: data.message,
-        _honey: '' // Anti-spam honeypot
-      };
+      const hasSmtp = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
 
       // Execute in background IIFE so it doesn't block the HTTP response
       (async () => {
-        try {
-          console.log('[NestJS] Background forwarding contact message to roland.tia@epitech.eu via FormSubmit...');
-          const response = await fetch(`https://formsubmit.co/ajax/${emailTo}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify(msgData)
-          });
-          const resBody = await response.json();
-          console.log('[NestJS] FormSubmit background email sending result:', resBody);
-        } catch (err) {
-          console.error('[NestJS] Error forwarding email via FormSubmit in background:', err);
+        if (hasSmtp) {
+          try {
+            console.log('[NestJS] Attempting to send email via SMTP...');
+            const transporter = nodemailer.createTransport({
+              host: process.env.SMTP_HOST || 'smtp.gmail.com',
+              port: parseInt(process.env.SMTP_PORT || '587', 10),
+              secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+              auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+              },
+            });
+
+            const htmlContent = `
+              <div style="font-family: sans-serif; padding: 25px; color: #1e293b; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);">
+                <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; color: #ffffff; text-align: center;">
+                  <h1 style="margin: 0; font-size: 22px; font-weight: bold; letter-spacing: -0.025em;">Nouveau message du Portfolio</h1>
+                  <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Formulaire de contact</p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                  <p style="margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: bold;">Expéditeur</p>
+                  <p style="margin: 0; font-size: 16px; font-weight: 600; color: #0f172a;">${data.name}</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                  <p style="margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: bold;">Adresse courriel</p>
+                  <p style="margin: 0; font-size: 15px; color: #4338ca;"><a href="mailto:${data.email}" style="color: #4338ca; text-decoration: none; font-weight: 500;">${data.email}</a></p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                  <p style="margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: bold;">Sujet</p>
+                  <p style="margin: 0; font-size: 15px; color: #334155; font-weight: 500;">${data.subject || 'Aucun ou non précisé'}</p>
+                </div>
+
+                <div style="margin-top: 25px; padding: 20px; border-radius: 12px; background-color: #f8fafc; border-left: 4px solid #4f46e5;">
+                  <p style="margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: bold;">Message</p>
+                  <p style="white-space: pre-wrap; margin: 0; font-size: 14.5px; line-height: 1.6; color: #1e293b;">${data.message}</p>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #f1f5f9; margin-top: 30px; margin-bottom: 20px;" />
+                <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">Cet e-mail sécurisé a été transmis directement depuis le serveur de votre portfolio de manière souveraine.</p>
+              </div>
+            `;
+
+            await transporter.sendMail({
+              from: process.env.SMTP_FROM || `"${data.name}" <${process.env.SMTP_USER}>`,
+              to: emailTo,
+              replyTo: data.email,
+              subject: data.subject || 'Nouveau message de votre Portfolio',
+              text: `Message de ${data.name} (${data.email}):\n\nSujet: ${data.subject}\n\n${data.message}`,
+              html: htmlContent,
+            });
+            console.log('[NestJS] Email successfully sent via SMTP!');
+          } catch (smtpErr) {
+            console.error('[NestJS] Error sending via SMTP in background:', smtpErr);
+            // Fallback to FormSubmit if SMTP failed
+            await fallbackToFormSubmit();
+          }
+        } else {
+          await fallbackToFormSubmit();
+        }
+
+        async function fallbackToFormSubmit() {
+          try {
+            console.log('[NestJS] Background forwarding contact message to roland.tia@epitech.eu via FormSubmit...');
+            const response = await fetch(`https://formsubmit.co/ajax/${emailTo}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                name: data.name,
+                email: data.email,
+                _subject: data.subject || 'Nouveau message de votre Portfolio',
+                message: data.message,
+                _honey: ''
+              })
+            });
+            const resBody = await response.json();
+            console.log('[NestJS] FormSubmit background email sending result:', resBody);
+          } catch (err) {
+            console.error('[NestJS] Error forwarding email via FormSubmit in background:', err);
+          }
         }
       })();
     }
